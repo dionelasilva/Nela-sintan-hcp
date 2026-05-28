@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SINTAN · HCP Intelligence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --navy:       #0E1F35;
+      --navy-mid:   #1B3A5C;
+      --teal:       #0A8A7A;
+      --teal-light: #0EB89E;
+      --teal-glow:  rgba(10,138,122,0.18);
+      --amber:      #E8970A;
+      --amber-bg:   rgba(232,151,10,0.10);
+      --surface:    #F7F8FA;
+      --card:       #FFFFFF;
+      --border:     #E2E5EC;
+      --border-mid: #C8CDD8;
+      --text:       #0E1F35;
+      --text-mid:   #4A5568;
+      --text-soft:  #8A93A6;
+      --green:      #0A7A5A;
+      --green-bg:   rgba(10,122,90,0.08);
+      --red:        #C0392B;
+      --r:          10px;
+      --r-lg:       16px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Sora', sans-serif;
+      background: var(--surface);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── TOP BAR ── */
+    .topbar {
+      background: var(--navy);
+      padding: 0 2rem;
+      height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .topbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .topbar-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--teal-light);
+      box-shadow: 0 0 8px var(--teal-light);
+    }
+    .topbar-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: 0.04em;
+    }
+    .topbar-tag {
+      font-size: 11px;
+      color: rgba(255,255,255,0.4);
+      font-family: 'DM Mono', monospace;
+      margin-left: 4px;
+    }
+    .topbar-right {
+      font-size: 11px;
+      color: rgba(255,255,255,0.35);
+      font-family: 'DM Mono', monospace;
+    }
+
+    /* ── LAYOUT ── */
+    .wrap {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 2rem 1.25rem 4rem;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      text-align: center;
+      padding: 2.5rem 1rem 2rem;
+    }
+    .hero-eyebrow {
+      font-size: 11px;
+      font-family: 'DM Mono', monospace;
+      color: var(--teal);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 0.75rem;
+    }
+    .hero-title {
+      font-size: clamp(24px, 4vw, 34px);
+      font-weight: 700;
+      color: var(--navy);
+      line-height: 1.2;
+      margin-bottom: 0.625rem;
+    }
+    .hero-title span { color: var(--teal); }
+    .hero-sub {
+      font-size: 14px;
+      color: var(--text-mid);
+      max-width: 520px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    /* ── SEARCH CARD ── */
+    .search-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 1.75rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 2px 12px rgba(14,31,53,0.06);
+    }
+
+    .field-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+    .field-grid.three { grid-template-columns: 1fr 1fr 1fr; }
+
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .field input,
+    .field select {
+      padding: 10px 13px;
+      font-size: 14px;
+      font-family: 'Sora', sans-serif;
+      border: 1.5px solid var(--border);
+      border-radius: var(--r);
+      background: var(--surface);
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .field input:focus,
+    .field select:focus {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 3px var(--teal-glow);
+      background: #fff;
+    }
+
+    .btn-search {
+      width: 100%;
+      padding: 14px;
+      background: var(--navy);
+      color: #fff;
+      border: none;
+      border-radius: var(--r);
+      font-size: 15px;
+      font-weight: 600;
+      font-family: 'Sora', sans-serif;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: background 0.18s, transform 0.1s;
+      margin-top: 6px;
+      letter-spacing: 0.01em;
+    }
+    .btn-search:hover { background: var(--teal); }
+    .btn-search:active { transform: scale(0.99); }
+    .btn-search:disabled { background: var(--border-mid); cursor: not-allowed; }
+
+    /* ── LOADING ── */
+    .loading-card {
+      display: none;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 2.5rem;
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    .loading-card.visible { display: block; }
+    .spinner {
+      width: 42px; height: 42px;
+      border: 3px solid var(--border);
+      border-top-color: var(--teal);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 1rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { font-size: 14px; color: var(--text-mid); }
+    .loading-sub { font-size: 12px; color: var(--text-soft); margin-top: 6px; font-family: 'DM Mono', monospace; }
+
+    /* ── RESULTS ── */
+    .results-card {
+      display: none;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      overflow: hidden;
+      box-shadow: 0 2px 16px rgba(14,31,53,0.08);
+      margin-bottom: 1.5rem;
+    }
+    .results-card.visible { display: block; }
+
+    .results-header {
+      background: var(--navy);
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .results-doctor-name {
+      font-size: 17px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .results-meta {
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+      font-family: 'DM Mono', monospace;
+    }
+    .status-badge {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      font-family: 'DM Mono', monospace;
+      letter-spacing: 0.04em;
+    }
+    .status-validated { background: rgba(10,138,122,0.2); color: var(--teal-light); border: 1px solid rgba(10,184,158,0.3); }
+    .status-partial { background: var(--amber-bg); color: var(--amber); border: 1px solid rgba(232,151,10,0.3); }
+
+    /* ── FIELD GROUPS ── */
+    .results-body { padding: 1.5rem; }
+
+    .section-title {
+      font-size: 10.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--teal);
+      margin-bottom: 0.875rem;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .section-title::before {
+      content: '';
+      width: 3px; height: 14px;
+      background: var(--teal);
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .fields-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 1.5rem;
+    }
+    .fields-grid.single { grid-template-columns: 1fr; }
+    .fields-grid.three { grid-template-columns: 1fr 1fr 1fr; }
+
+    .result-field {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 0.75rem 1rem;
+      position: relative;
+    }
+    .result-field.highlight {
+      border-color: rgba(10,138,122,0.3);
+      background: rgba(10,138,122,0.04);
+    }
+    .result-field.missing {
+      border-color: rgba(192,57,43,0.2);
+      background: rgba(192,57,43,0.03);
+    }
+    .rf-label {
+      font-size: 10.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-soft);
+      margin-bottom: 5px;
+    }
+    .rf-value {
+      font-size: 13.5px;
+      color: var(--text);
+      font-weight: 500;
+      line-height: 1.4;
+      word-break: break-word;
+    }
+    .rf-value.not-found {
+      color: var(--red);
+      font-style: italic;
+      font-weight: 400;
+      font-size: 12.5px;
+    }
+    .rf-source {
+      font-size: 10.5px;
+      color: var(--text-soft);
+      margin-top: 4px;
+      font-family: 'DM Mono', monospace;
+    }
+
+    .copy-field-btn {
+      position: absolute;
+      top: 8px; right: 8px;
+      width: 26px; height: 26px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text-soft);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      transition: all 0.15s;
+      opacity: 0;
+    }
+    .result-field:hover .copy-field-btn { opacity: 1; }
+    .copy-field-btn:hover { background: var(--teal); color: #fff; border-color: var(--teal); }
+    .copy-field-btn.done { background: var(--green); color: #fff; border-color: var(--green); opacity: 1; }
+
+    /* ── SINTAN CRM HINT ── */
+    .crm-hint {
+      background: linear-gradient(135deg, var(--amber-bg), rgba(232,151,10,0.05));
+      border: 1px solid rgba(232,151,10,0.25);
+      border-radius: var(--r);
+      padding: 1rem 1.125rem;
+      margin-bottom: 1.5rem;
+    }
+    .crm-hint-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--amber);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .crm-hint-text {
+      font-size: 12.5px;
+      color: var(--text-mid);
+      line-height: 1.55;
+    }
+
+    /* ── COPY ALL ── */
+    .btn-copy-all {
+      width: 100%;
+      padding: 12px;
+      background: var(--green-bg);
+      color: var(--green);
+      border: 1.5px solid rgba(10,122,90,0.25);
+      border-radius: var(--r);
+      font-size: 14px;
+      font-weight: 600;
+      font-family: 'Sora', sans-serif;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.15s;
+      margin-top: 0.5rem;
+    }
+    .btn-copy-all:hover { background: rgba(10,122,90,0.15); }
+
+    .btn-new {
+      width: 100%;
+      padding: 11px;
+      background: transparent;
+      color: var(--text-soft);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      font-size: 13.5px;
+      font-family: 'Sora', sans-serif;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: all 0.15s;
+    }
+    .btn-new:hover { background: var(--surface); color: var(--text-mid); }
+
+    /* ── ERROR ── */
+    .error-card {
+      display: none;
+      background: rgba(192,57,43,0.05);
+      border: 1px solid rgba(192,57,43,0.2);
+      border-radius: var(--r-lg);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      font-size: 13.5px;
+      color: var(--red);
+    }
+    .error-card.visible { display: block; }
+
+    /* ── FOOTER ── */
+    .footer {
+      text-align: center;
+      font-size: 11.5px;
+      color: var(--text-soft);
+      margin-top: 3rem;
+      font-family: 'DM Mono', monospace;
+      line-height: 1.7;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 600px) {
+      .field-grid, .field-grid.three, .fields-grid, .fields-grid.three { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-brand">
+    <div class="topbar-dot"></div>
+    <span class="topbar-name">SINTAN INC</span>
+    <span class="topbar-tag">· HCP Intelligence v2.0</span>
+  </div>
+  <div class="topbar-right">Data Stewardship · KPO · Pharma</div>
+</div>
+
+<div class="wrap">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-eyebrow">Inteligencia Comercial con IA</div>
+    <h1 class="hero-title">Busca un médico.<br><span>Obtén todo al instante.</span></h1>
+    <p class="hero-sub">Escribe el nombre del médico y la IA busca exhaustivamente: datos de contacto, institución actual, formación académica y equivalencia en el CRM de SINTAN.</p>
+  </div>
+
+  <!-- SEARCH CARD -->
+  <div class="search-card">
+    <div class="field-grid">
+      <div class="field">
+        <label>Nombre del médico *</label>
+        <input type="text" id="doc-name" placeholder="Ej: John H. Smith" />
+      </div>
+      <div class="field">
+        <label>Especialidad *</label>
+        <select id="doc-specialty">
+          <option value="">Seleccionar...</option>
+          <option>Gastroenterology</option>
+          <option>Dermatology</option>
+          <option>Oncology</option>
+          <option>Cardiology</option>
+          <option>Nephrology</option>
+          <option>Rheumatology</option>
+          <option>Hematology</option>
+          <option>Pulmonology</option>
+          <option>Endocrinology</option>
+          <option>Neurology</option>
+          <option>Hepatology</option>
+          <option>Pediatric Gastroenterology</option>
+        </select>
+      </div>
+    </div>
+    <div class="field-grid three">
+      <div class="field">
+        <label>Estado (EE. UU.) *</label>
+        <select id="doc-state">
+          <option value="">Seleccionar...</option>
+          <option>AL</option><option>AK</option><option>AZ</option><option>AR</option>
+          <option>CA</option><option>CO</option><option>CT</option><option>DE</option>
+          <option>FL</option><option>GA</option><option>HI</option><option>ID</option>
+          <option>IL</option><option>IN</option><option>IA</option><option>KS</option>
+          <option>KY</option><option>LA</option><option>ME</option><option>MD</option>
+          <option>MA</option><option>MI</option><option>MN</option><option>MS</option>
+          <option>MO</option><option>MT</option><option>NE</option><option>NV</option>
+          <option>NH</option><option>NJ</option><option>NM</option><option>NY</option>
+          <option>NC</option><option>ND</option><option>OH</option><option>OK</option>
+          <option>OR</option><option>PA</option><option>PR</option><option>RI</option>
+          <option>SC</option><option>SD</option><option>TN</option><option>TX</option>
+          <option>UT</option><option>VT</option><option>VA</option><option>WA</option>
+          <option>WV</option><option>WI</option><option>WY</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>País de formación</label>
+        <select id="doc-country">
+          <option value="USA">Estados Unidos</option>
+          <option value="India">India</option>
+          <option value="Canada">Canadá</option>
+          <option value="Puerto Rico">Puerto Rico</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Institución (opcional)</label>
+        <input type="text" id="doc-institution" placeholder="Ej: Baylor, Mayo Clinic..." />
+      </div>
+    </div>
+    <button class="btn-search" id="btn-search" onclick="runSearch()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      Buscar perfil completo con IA
+    </button>
+  </div>
+
+  <!-- LOADING -->
+  <div class="loading-card" id="loading-card">
+    <div class="spinner"></div>
+    <div class="loading-text" id="loading-text">Buscando información del médico...</div>
+    <div class="loading-sub" id="loading-sub">NPI Registry · Doximity · LinkedIn · Directorios médicos</div>
+  </div>
+
+  <!-- ERROR -->
+  <div class="error-card" id="error-card">
+    <strong>Error en la búsqueda.</strong> Verifica tu conexión e intenta de nuevo. Si el problema persiste, usa el protocolo manual.
+  </div>
+
+  <!-- RESULTS -->
+  <div class="results-card" id="results-card">
+    <div class="results-header">
+      <div>
+        <div class="results-doctor-name" id="res-name">—</div>
+        <div class="results-meta" id="res-meta">—</div>
+      </div>
+      <div class="status-badge status-validated" id="res-status">VALIDATED</div>
+    </div>
+
+    <div class="results-body">
+
+      <!-- SECCIÓN 1: Identificación -->
+      <div class="section-title">Identificación &amp; Licencia</div>
+      <div class="fields-grid three">
+        <div class="result-field" id="f-npi">
+          <div class="rf-label">NPI Number</div>
+          <div class="rf-value" id="v-npi">—</div>
+          <button class="copy-field-btn" onclick="copyField('v-npi',this)" title="Copiar">⎘</button>
+        </div>
+        <div class="result-field" id="f-status">
+          <div class="rf-label">HCP Status</div>
+          <div class="rf-value" id="v-status">—</div>
+          <button class="copy-field-btn" onclick="copyField('v-status',this)" title="Copiar">⎘</button>
+        </div>
+        <div class="result-field" id="f-specialty">
+          <div class="rf-label">Primary Specialty</div>
+          <div class="rf-value" id="v-specialty">—</div>
+          <button class="copy-field-btn" onclick="copyField('v-specialty',this)" title="Copiar">⎘</button>
+        </div>
+      </div>
+
+      <!-- SECCIÓN 2: Ubicación actual -->
+      <div class="section-title">Institución &amp; Contacto Actual</div>
+      <div class="fields-grid">
+        <div class="result-field" id="f-institution">
+          <div class="rf-label">Work Location / Institución</div>
+          <div class="rf-value" id="v-institution">—</div>
+          <button class="copy-field-btn" onclick="copyField('v-institution',this)" title="Copiar">⎘</button>
+        </div>
+        <div class="result-field" id="f-address">
+          <div class="rf-label">Dirección completa</div>
+          <div class="rf-value" id="v-address">—</div>
+          <button class="copy-field-btn" onclick="copyField('v-address',this)" title="Copiar">⎘</button>
+        </div>
+        <div class="result-field" id="f-phone">
+          <div class="rf-label">Teléfono</div>
+          <div class="rf-value" id="v-phone">—</div>
+          <button class="copy-field-btn" onclick="copyField('v-phone',this)" title="Copiar">⎘</button>
+        </div>
+        <div class="result-field" id="f-fax">
+          <div class="rf-label">Fax</div>
+          <div class="rf-value" id="v-fax">—</div>
+          <button class="copy-field-btn" onclick="copyField('v-fax',this)" title="Copiar">⎘</button>
+        </div>
+      </div>
+      <div class="fields-grid single">
+        <div class="result-field" id="f-website">
+          <div class="rf-label">Website oficial del médico</div>
+          <div class="rf-value" id="v-website">—</div>
+          <button class="copy-field-btn" onclick="copyField('v-website',this)" title="Copiar">⎘</button>
+        </div>
+      </div>
+
+      <!-- SECCIÓN 3: Formación académica -->
+      <div class="section-title">Formación Académica</div>
+      <div class="fields-grid single">
+        <div class="result-field" id="f-medschool">
+          <div class="rf-label">Medical School</div>
+          <div class="rf-value" id="v-medschool">—</div>
+          <div class="rf-source" id="s-medschool"></div>
+          <button class="copy-field-btn" onclick="copyField('v-medschool',this)" title="Copiar">⎘</button>
+        </div>
+      </div>
+      <div class="fields-grid">
+        <div class="result-field" id="f-residency">
+          <div class="rf-label">Residency School</div>
+          <div class="rf-value" id="v-residency">—</div>
+          <div class="rf-source" id="s-residency"></div>
+          <button class="copy-field-btn" onclick="copyField('v-residency',this)" title="Copiar">⎘</button>
+        </div>
+        <div class="result-field" id="f-fellowship">
+          <div class="rf-label">Fellowship School</div>
+          <div class="rf-value" id="v-fellowship">—</div>
+          <div class="rf-source" id="s-fellowship"></div>
+          <button class="copy-field-btn" onclick="copyField('v-fellowship',this)" title="Copiar">⎘</button>
+        </div>
+      </div>
+      <div class="fields-grid">
+        <div class="result-field" id="f-fellowship-year">
+          <div class="rf-label">Año de inicio del Fellowship</div>
+          <div class="rf-value" id="v-fellowship-year">—</div>
+          <button class="copy-field-btn" onclick="copyField('v-fellowship-year',this)" title="Copiar">⎘</button>
+        </div>
+        <div class="result-field" id="f-fellowship-status">
+          <div class="rf-label">Status del Fellowship</div>
+          <div class="rf-value" id="v-fellowship-status">—</div>
+          <button class="copy-field-btn" onclick="copyField('v-fellowship-status',this)" title="Copiar">⎘</button>
+        </div>
+      </div>
+
+      <!-- SECCIÓN 4: CRM SINTAN -->
+      <div class="section-title">Equivalencia en CRM de SINTAN</div>
+      <div class="crm-hint" id="crm-hint-box">
+        <div class="crm-hint-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          Cómo buscar esta institución en SINTAN
+        </div>
+        <div class="crm-hint-text" id="crm-hint-text">—</div>
+      </div>
+
+      <!-- SECCIÓN 5: Notas -->
+      <div class="section-title">Notas de Validación</div>
+      <div class="fields-grid single">
+        <div class="result-field">
+          <div class="rf-label">Observaciones para el CRM</div>
+          <div class="rf-value" id="v-notes" style="line-height:1.6;">—</div>
+        </div>
+      </div>
+
+      <!-- ACCIONES -->
+      <button class="btn-copy-all" onclick="copyAll()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copiar resumen completo para el CRM
+      </button>
+      <button class="btn-new" onclick="resetAll()">↩ Buscar otro médico</button>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    Desarrollado por Dionela Franchesca Silva Alvarez · Data Steward · SINTAN INC<br/>
+    Universidad Francisco de Paula Santander — Comercio Internacional · 2026
+  </div>
+
+</div>
+
+<script>
+const STEPS = [
+  "Consultando NPI Registry...",
+  "Buscando página oficial de la institución...",
+  "Extrayendo formación académica (Medical School, Residency, Fellowship)...",
+  "Verificando datos de contacto...",
+  "Identificando equivalencia en CRM de SINTAN...",
+  "Organizando resultados..."
+];
+
+let stepIndex = 0, stepTimer = null;
+
+function animateLoading() {
+  clearInterval(stepTimer);
+  stepIndex = 0;
+  document.getElementById('loading-text').textContent = STEPS[0];
+  stepTimer = setInterval(() => {
+    stepIndex = Math.min(stepIndex + 1, STEPS.length - 1);
+    document.getElementById('loading-text').textContent = STEPS[stepIndex];
+  }, 3500);
+}
+
+async function runSearch() {
+  const name        = document.getElementById('doc-name').value.trim();
+  const specialty   = document.getElementById('doc-specialty').value;
+  const state       = document.getElementById('doc-state').value;
+  const country     = document.getElementById('doc-country').value;
+  const institution = document.getElementById('doc-institution').value.trim();
+
+  if (!name || !specialty || !state) {
+    alert('Por favor completa: Nombre, Especialidad y Estado.');
+    return;
+  }
+
+  // UI state
+  document.getElementById('btn-search').disabled = true;
+  document.getElementById('results-card').classList.remove('visible');
+  document.getElementById('error-card').classList.remove('visible');
+  document.getElementById('loading-card').classList.add('visible');
+  animateLoading();
+  document.getElementById('loading-card').scrollIntoView({ behavior:'smooth', block:'start' });
+
+  try {
+    const resp = await fetch("/.netlify/functions/search", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, specialty, state, country, institution })
+    });
+
+    if (!resp.ok) throw new Error(`API error: ${resp.status}`);
+    const data = await resp.json();
+
+    clearInterval(stepTimer);
+    renderResults(name, specialty, state, data);
+
+  } catch (err) {
+    clearInterval(stepTimer);
+    document.getElementById('loading-card').classList.remove('visible');
+    document.getElementById('error-card').classList.add('visible');
+    console.error(err);
+  } finally {
+    document.getElementById('btn-search').disabled = false;
+  }
+}
+
+
+function renderResults(name, specialty, state, rawText) {
+  let data;
+  try {
+    if (rawText && typeof rawText === 'object') {
+      data = rawText;
+    } else {
+      const clean = String(rawText).replace(/```json|```/g, '').trim();
+      const jsonMatch = clean.match(/\{[\s\S]*\}/);
+      data = JSON.parse(jsonMatch ? jsonMatch[0] : clean);
+    }
+  } catch {
+    data = fallbackParse(rawText, name, specialty);
+  }
+
+  document.getElementById('loading-card').classList.remove('visible');
+
+  // Header
+  document.getElementById('res-name').textContent = data.full_name || name;
+  document.getElementById('res-meta').textContent = `${specialty} · ${state} · ${new Date().toLocaleDateString('es-CO')}`;
+
+  const allFound = ['npi','institution','address','medical_school','residency','fellowship']
+    .every(k => data[k] && data[k] !== 'NOT_FOUND');
+  const statusEl = document.getElementById('res-status');
+  if (allFound) {
+    statusEl.textContent = 'VALIDATED';
+    statusEl.className = 'status-badge status-validated';
+  } else {
+    statusEl.textContent = 'NEEDS VERIFICATION';
+    statusEl.className = 'status-badge status-partial';
+  }
+
+  // Populate fields
+  setField('v-npi',               data.npi);
+  setField('v-status',            data.hcp_status);
+  setField('v-specialty',         data.primary_specialty || specialty);
+  setField('v-institution',       data.institution);
+  setField('v-address',           data.address);
+  setField('v-phone',             data.phone);
+  setField('v-fax',               data.fax);
+  setField('v-website',           data.website);
+  setField('v-medschool',         data.medical_school);
+  setField('v-residency',         data.residency);
+  setField('v-fellowship',        data.fellowship);
+  setField('v-fellowship-year',   data.fellowship_year_started);
+  setField('v-fellowship-status', data.fellowship_status);
+  setField('v-notes',             data.validation_notes);
+
+  // Sources
+  setSource('s-medschool',  data.medical_school_source);
+  setSource('s-residency',  data.residency_source);
+  setSource('s-fellowship', data.fellowship_source);
+
+  // CRM hint
+  document.getElementById('crm-hint-text').textContent =
+    data.sintan_crm_search || 'Busca por el nombre de la institución y también por el sistema de salud al que pertenece.';
+
+  document.getElementById('results-card').classList.add('visible');
+  document.getElementById('results-card').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function setField(id, value) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (!value || value === 'NOT_FOUND') {
+    el.textContent = 'No encontrado — verificar manualmente';
+    el.className = 'rf-value not-found';
+    el.closest('.result-field')?.classList.add('missing');
+  } else {
+    el.textContent = value;
+    el.className = 'rf-value';
+    el.closest('.result-field')?.classList.remove('missing');
+  }
+}
+
+function setSource(id, src) {
+  const el = document.getElementById(id);
+  if (el && src) el.textContent = '↳ Fuente: ' + src;
+}
+
+function copyField(id, btn) {
+  const val = document.getElementById(id)?.textContent;
+  if (!val || val.includes('verificar manualmente')) return;
+  navigator.clipboard.writeText(val).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = val; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+  });
+  btn.textContent = '✓'; btn.classList.add('done');
+  setTimeout(() => { btn.textContent = '⎘'; btn.classList.remove('done'); }, 1800);
+}
+
+function copyAll() {
+  const fields = [
+    ['NPI',                  'v-npi'],
+    ['HCP Status',           'v-status'],
+    ['Primary Specialty',    'v-specialty'],
+    ['Institución actual',   'v-institution'],
+    ['Dirección',            'v-address'],
+    ['Teléfono',             'v-phone'],
+    ['Fax',                  'v-fax'],
+    ['Website',              'v-website'],
+    ['Medical School',       'v-medschool'],
+    ['Residency',            'v-residency'],
+    ['Fellowship',           'v-fellowship'],
+    ['Fellowship Año',       'v-fellowship-year'],
+    ['Fellowship Status',    'v-fellowship-status'],
+    ['Búsqueda en SINTAN',   null],
+    ['Notas',                'v-notes'],
+  ];
+
+  let text = `=== PERFIL HCP — SINTAN INC ===\n`;
+  text += `Generado: ${new Date().toLocaleString('es-CO')}\n\n`;
+
+  fields.forEach(([label, id]) => {
+    if (!id) {
+      text += `\nBúsqueda en CRM SINTAN:\n${document.getElementById('crm-hint-text').textContent}\n`;
+      return;
+    }
+    const val = document.getElementById(id)?.textContent || '—';
+    text += `${label}: ${val}\n`;
+  });
+
+  navigator.clipboard.writeText(text).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+  });
+
+  const btn = document.querySelector('.btn-copy-all');
+  const orig = btn.innerHTML;
+  btn.innerHTML = '✓ ¡Resumen copiado!';
+  setTimeout(() => { btn.innerHTML = orig; }, 2500);
+}
+
+function resetAll() {
+  document.getElementById('doc-name').value = '';
+  document.getElementById('doc-specialty').value = '';
+  document.getElementById('doc-state').value = '';
+  document.getElementById('doc-country').value = 'USA';
+  document.getElementById('doc-institution').value = '';
+  document.getElementById('results-card').classList.remove('visible');
+  document.getElementById('error-card').classList.remove('visible');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function fallbackParse(text, name, specialty) {
+  return {
+    full_name: name,
+    primary_specialty: specialty,
+    npi: 'NOT_FOUND',
+    hcp_status: 'NOT_FOUND',
+    institution: 'NOT_FOUND',
+    address: 'NOT_FOUND',
+    phone: 'NOT_FOUND',
+    fax: 'NOT_FOUND',
+    website: 'NOT_FOUND',
+    photo_url: 'NOT_FOUND',
+    medical_school: 'NOT_FOUND',
+    residency: 'NOT_FOUND',
+    fellowship: 'NOT_FOUND',
+    fellowship_year_started: 'NOT_FOUND',
+    fellowship_status: 'NOT_FOUND',
+    sintan_crm_search: 'Realiza búsqueda manual en el CRM.',
+    validation_notes: 'La IA no pudo estructurar la respuesta correctamente. Revisa los resultados manualmente usando el Protocolo de Búsqueda v1.0.'
+  };
+}
+</script>
+</body>
+</html>
