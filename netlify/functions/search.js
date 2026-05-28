@@ -16,10 +16,12 @@ exports.handler = async (event) => {
     const TAVILY_KEY = process.env.TAVILY_API_KEY;
     const CLAUDE_KEY = process.env.ANTHROPIC_API_KEY;
 
+    // More targeted queries for medical professionals
     const queries = [
-      `"${name}" ${specialty} ${state} NPI doctor profile`,
-      `"${name}" ${specialty} ${state} medical school residency fellowship`,
-      `"${name}" ${specialty} ${state} phone fax address clinic`,
+      `"${name}" MD ${specialty} ${state} NPI site:npiregistry.cms.hhs.gov OR site:npino.com OR site:npidb.org`,
+      `"${name}" ${specialty} ${state} doctor profile medical school fellowship residency`,
+      `"${name}" ${specialty} ${state} phone fax address practice${institution ? ` "${institution}"` : ''}`,
+      `"${name}" MD gastroenterologist site:doximity.com OR site:healthgrades.com OR site:vitals.com OR site:usnews.com`,
     ];
 
     const searches = await Promise.all(queries.map(q =>
@@ -30,16 +32,29 @@ exports.handler = async (event) => {
           api_key: TAVILY_KEY,
           query: q,
           search_depth: 'advanced',
-          max_results: 5,
-          include_answer: true
+          max_results: 6,
+          include_answer: true,
+          include_raw_content: false
         })
-      }).then(r => r.json())
+      }).then(r => r.json()).catch(() => ({ results: [], answer: null }))
     ));
 
+    // Also fetch NPI directly
+    const npiSearch = await fetch(
+      `https://npiregistry.cms.hhs.gov/api/?version=2.1&first_name=${name.split(' ')[0]}&last_name=${name.split(' ').slice(-1)[0]}&state=${state}&enumeration_type=NPI-1&limit=3`
+    ).then(r => r.json()).catch(() => null);
+
+    let npiData = 'NPI Registry: no results found';
+    if (npiSearch?.results?.length > 0) {
+      const r = npiSearch.results[0];
+      const addr = r.addresses?.[0];
+      npiData = `NPI: ${r.number} | Name: ${r.basic?.first_name} ${r.basic?.last_name} | Credential: ${r.basic?.credential} | Status: ${r.basic?.status} | Address: ${addr?.address_1}, ${addr?.city}, ${addr?.state} ${addr?.postal_code} | Phone: ${addr?.telephone_number} | Specialty: ${r.taxonomies?.[0]?.desc}`;
+    }
+
     const searchContext = searches.map((s, i) =>
-      `BÚSQUEDA ${i+1}: ${queries[i]}\nRESULTADOS:\n${s.results?.map(r =>
-        `- ${r.title}\n  URL: ${r.url}\n  ${r.content?.substring(0, 400)}`
-      ).join('\n')}\nRESPUESTA DIRECTA: ${s.answer || 'N/A'}`
+      `SEARCH ${i+1}: ${queries[i]}\nANSWER: ${s.answer || 'N/A'}\nRESULTS:\n${(s.results || []).map(r =>
+        `- ${r.title}\n  URL: ${r.url}\n  ${(r.content || '').substring(0, 500)}`
+      ).join('\n')}`
     ).join('\n\n---\n\n');
 
     const claudeResp = await fetch('https://api.anthropic.com/v1/messages', {
@@ -51,37 +66,40 @@ exports.handler = async (event) => {
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1024,
+        max_tokens: 1500,
         messages: [{
           role: 'user',
-          content: `Eres un experto en datos médicos para SINTAN INC. Basándote ÚNICAMENTE en los resultados de búsqueda, extrae la información y devuelve SOLO un JSON válido sin markdown ni texto extra.
+          content: `You are a medical data extraction expert for SINTAN INC, a pharmaceutical KPO company. Extract ALL available information from the search results below and return ONLY a valid JSON object with no markdown, no backticks, no extra text.
 
-MÉDICO: ${name} | ESPECIALIDAD: ${specialty} | ESTADO: ${state} | PAÍS: ${country}${institution ? ` | INSTITUCIÓN: ${institution}` : ''}
+PHYSICIAN: ${name} | SPECIALTY: ${specialty} | STATE: ${state} | TRAINING COUNTRY: ${country}${institution ? ` | INSTITUTION: ${institution}` : ''}
 
-RESULTADOS:
+NPI REGISTRY DIRECT DATA:
+${npiData}
+
+WEB SEARCH RESULTS:
 ${searchContext}
 
-Devuelve SOLO este JSON:
+Return ONLY this JSON structure (use NOT_FOUND if data unavailable):
 {
-  "full_name": "nombre completo con credenciales o NOT_FOUND",
-  "npi": "número NPI o NOT_FOUND",
-  "hcp_status": "Active o NOT_FOUND",
+  "full_name": "full legal name with credentials",
+  "npi": "10-digit NPI number",
+  "hcp_status": "Active or Inactive",
   "primary_specialty": "${specialty}",
-  "institution": "institución actual o NOT_FOUND",
-  "address": "dirección completa o NOT_FOUND",
-  "phone": "teléfono o NOT_FOUND",
-  "fax": "fax o NOT_FOUND",
-  "website": "URL del perfil o NOT_FOUND",
-  "medical_school": "escuela de medicina o NOT_FOUND",
-  "medical_school_source": "fuente donde se encontró",
-  "residency": "institución de residencia o NOT_FOUND",
-  "residency_source": "fuente donde se encontró",
-  "fellowship": "institución del fellowship o NOT_FOUND",
-  "fellowship_source": "fuente donde se encontró",
-  "fellowship_year_started": "año de inicio o NOT_FOUND",
-  "fellowship_status": "Alumni o Active o NOT_FOUND",
-  "sintan_crm_search": "cómo buscar esta institución en el CRM de SINTAN incluyendo nombre del sistema de salud",
-  "validation_notes": "notas importantes para el analista"
+  "institution": "current work institution full name",
+  "address": "full address: street, city, state, ZIP",
+  "phone": "phone number",
+  "fax": "fax number",
+  "website": "direct URL to physician profile page",
+  "medical_school": "medical school name",
+  "medical_school_source": "source name",
+  "residency": "residency institution",
+  "residency_source": "source name",
+  "fellowship": "${specialty} fellowship institution",
+  "fellowship_source": "source name",
+  "fellowship_year_started": "year",
+  "fellowship_status": "Alumni or Active",
+  "sintan_crm_search": "exact name and 2-3 alternatives to search in SINTAN CRM, including parent health system (e.g. Summit Health, Atlantic Health System, etc.)",
+  "validation_notes": "important notes for the CRM analyst: data gaps, address discrepancies, recommended manual checks"
 }`
         }]
       })
@@ -90,13 +108,22 @@ Devuelve SOLO este JSON:
     const claudeData = await claudeResp.json();
     const resultText = claudeData.content?.[0]?.text || '{}';
 
+    // Clean and parse
+    const clean = resultText.replace(/```json|```/g, '').trim();
+    const jsonMatch = clean.match(/\{[\s\S]*\}/);
+    const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : clean);
+
     return {
       statusCode: 200,
-      headers: { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json' },
-      body: resultText
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(parsed)
     };
 
   } catch (err) {
+    console.error('Function error:', err);
     return {
       statusCode: 500,
       headers: { 'Access-Control-Allow-Origin': '*' },
